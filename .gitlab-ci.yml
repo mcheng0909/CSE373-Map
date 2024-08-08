@@ -1,0 +1,49 @@
+stages:
+  - allPaths
+  - transitPaths
+  - tieBreaking
+  - shortestPath
+  - coffeePath
+
+variables:
+  FINAL: 'final'
+
+build-allPaths:
+  stage: allPaths
+  script:
+    - ./gradlew --warning-mode all clean test --tests 'GraphTests.testAllPaths'
+  rules:
+    - if: $CI_COMMIT_TAG != null && $final
+    - when: always
+
+build-transitPaths:
+  stage: transitPaths
+  script:
+    - ./gradlew --warning-mode all clean test --tests 'GraphTests.testTransitPaths'
+  rules:
+    - if: $CI_COMMIT_TAG != null && $final
+    - when: always
+
+build-tieBreakingPaths:
+  stage: tieBreaking
+  script:
+    - ./gradlew --warning-mode all clean test --tests 'GraphTests.testTieBreaking'
+  rules:
+    - if: $CI_COMMIT_TAG != null && $final
+    - when: always
+
+build-shortestPath:
+  stage: shortestPath
+  script:
+    - ./gradlew --warning-mode all clean test --tests 'GraphTests.testShortestPath'
+  rules:
+    - if: $CI_COMMIT_TAG != null && $final
+    - when: always
+
+build-coffeePath:
+  stage: coffeePath
+  script:
+    - ./gradlew --warning-mode all clean test --tests 'GraphTests.testCoffeeStops'
+  rules:
+    - if: $CI_COMMIT_TAG != null && $final
+    - when: always
