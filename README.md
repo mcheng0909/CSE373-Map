@@ -13,9 +13,9 @@ Your redesign is given below, but you don't need to turn in anything related to 
 
 ### Adding Social Features to Husky Maps
 Enhance Husky Maps with social features to personalize and recommend locations.
-1. Data Structure Representation:
+1. **Data Structure Representation:**
 Describe the data structures and graph representations used to store users, their friends, and locations.
-2. Functionalities:
+2. **Functionalities:**
     - **Save a Location:** Allow users to save a location.
     - **Invite a Random Mutual Friend:** Invite a random mutual friend (who is friends with at least two of your friends) to a location. The location must be saved by the mutual friend but not by you. Note that mutual friends are not initially your friends but can become friends in the future.
     - **Recommend Locations:** Recommend locations based on other users who have saved some of your places, as you might like locations they have saved that you haven't.
