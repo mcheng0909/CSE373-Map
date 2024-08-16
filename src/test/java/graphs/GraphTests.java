@@ -52,7 +52,7 @@ public class GraphTests {
 
     @Test
     @DisplayName("Testing the allPaths function to see if all paths are correctly returned. " +
-            "This test can be used as a halfway point for getTransitPaths!")
+            "This test can be used as a halfway po≥int for getTransitPaths!")
     void testAllPaths(){
         Graph graph = new Graph();
         List<String> p372 = new ArrayList<>();

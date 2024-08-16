@@ -6,7 +6,7 @@ import java.util.*;
  */
 public class Graph {
 
-    /**
+    /*
      * Feel free to develop this class however you like, with either an adjacency list or using nodes. For reference, the staff solution
      * was developed using a combination of an adjacency list and the edge class to incorporate route names. The preferred solution
      * (and potentially the most intuitive) is using the adjacency list HashMap to store the vertices/stops as values and a list of
@@ -17,22 +17,32 @@ public class Graph {
     /**
      * a map to represent an adjacency list for our graph.
      */
-    private Map<String, ArrayList> adjacencyList;
+    private Map<String, ArrayList<Edge>> adjacencyList;
 
     /**
      * a Node class example you might like to use.
      */
     private class Node {
-        String name;
-        private HashMap<Node, Integer> neighbors;
+        private List<String> path;
+        private double totalTime;
+        private int routeChanges;
 
-        public Node(String name){
-            this.name = name;
+        public Node(List<String> path, double totalTime, int routeChanges) {
+            this.path = path;
+            this.totalTime = totalTime;
+            this.routeChanges = routeChanges;
         }
 
-        public Node(String name, HashMap<Node, Integer> neighbors) {
-            this.name = name;
-            this.neighbors = neighbors;
+        public List<String> getPath() {
+            return path;
+        }
+
+        public double getTotalTime() {
+            return totalTime;
+        }
+
+        public int getRouteChanges() {
+            return routeChanges;
         }
     }
 
@@ -73,7 +83,27 @@ public class Graph {
      */
     public void addTransitRoute(List<String> stops, String routeName, List<Double> travelTimes) {
         // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
+        for(int i =0; i< stops.size()-1;i++){
+            String from = stops.get(i);
+            String to = stops.get(i+1);
+            Double weight = travelTimes.get(i);
+
+            Edge edgefrom = new Edge(from, to , weight, routeName);
+            Edge edgeto = new Edge(to, from , weight, routeName);
+
+            if(!adjacencyList.containsKey(from)){
+                adjacencyList.put(from,new ArrayList<>());
+            }
+            adjacencyList.get(from).add(edgefrom);
+
+            if(!adjacencyList.containsKey(to)){
+                adjacencyList.put(to,new ArrayList<>());
+            }
+            adjacencyList.get(to).add(edgeto);
+
+        }
+
     }
 
     /** Task 2: Get Transit Paths - get the three transit paths from a start to destination that use the least amount of transfers.
@@ -89,7 +119,29 @@ public class Graph {
      */
     public List<List<String>> getTransitPaths(String start, String destination) {
         // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
+        List<List<String>> allPaths = allPaths(start, destination);
+        List<Node> pathsWithCount = new ArrayList<>();
+        Set<List<String>> seenPaths = new HashSet<>();
+
+        for (List<String> path : allPaths){
+            //List<String> routesPath = getRoutesName(path);
+
+            if (!seenPaths.contains(path)) {
+                double time = getDistance(path);
+                int count = getTransferCount(path);
+                pathsWithCount.add(new Node(path, time, count));
+                seenPaths.add(path);
+            }
+        }
+        pathsWithCount.sort(Comparator.comparingInt(Node::getRouteChanges)
+                .thenComparingDouble(Node::getTotalTime));
+
+        List<List<String>> result = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            result.add(getRoutesName(pathsWithCount.get(i).getPath()));
+        }
+        return result;
     }
 
     /**
@@ -104,8 +156,31 @@ public class Graph {
      */
     public List<List<String>> allPaths(String start, String destination){
         // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+       // throw new UnsupportedOperationException("Not implemented yet");
+        List<List<String>> paths = new ArrayList<>();
+        List<String> path = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+
+        dfs(start, destination, visited, path, paths);
+        return paths;
     }
+    private void dfs(String current, String destination, Set<String> visited, List<String> path, List<List<String>> paths) {
+        visited.add(current);
+        path.add(current);
+        if(current.equals(destination)) {
+            paths.add(new ArrayList<>(path));
+        } else {
+            for (Edge edge : adjacencyList.get(current)) {
+                String neighbor = edge.to;
+                if (!visited.contains(neighbor)) {
+                    dfs(neighbor, destination, visited, path, paths);
+                }
+            }
+        }
+        path.remove(path.size()-1);
+        visited.remove(current);
+    }
+
 
     /**
      * Task 3: Get Shortest Coffee Path - get the shortest path from start to destination with a coffee shop on the route.
@@ -120,9 +195,132 @@ public class Graph {
      */
     public List<String> getShortestCoffeePath(String start, String destination, Set<String> coffeeStops) {
         // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
+        List<String> overallShortest = null;
+        double mindist = Double.POSITIVE_INFINITY;
+        for (String coffestop : coffeeStops){
+            List<String> shortestcoffeepath = shortestPath(start,coffestop);
+            List<String> coffeetodest = shortestPath(coffestop,destination);
+            shortestcoffeepath.addAll(coffeetodest.subList(1,coffeetodest.size()));
+
+            double totalDist = getDistance(shortestcoffeepath);
+
+            if(totalDist<mindist){
+                mindist = totalDist;
+                overallShortest = shortestcoffeepath;
+            }
+        }
+
+        return getRoutesName(overallShortest);
     }
 
+    private double getDistance(List<String> path){
+        double totalDist =0.0;
+        for(int i = 0; i< path.size()-1; i++){
+            String from = path.get(i);
+            String To = path.get(i+1);
+            for(Edge edge : adjacencyList.get(from)){
+                if(edge.to.equals(To)){
+                    totalDist += edge.weight;
+                    break;
+                }
+            }
+        }
+        return totalDist;
+    }
+    /*
+    private List<String> getRoutesName(List<String> path){
+        List<String> result = new ArrayList<>(path);
+        String lastRoute = "";
+        for(int i = 0; i< path.size()-1; i++){
+            String from = path.get(i);
+            String to = path.get(i+1);
+
+            for(Edge edge : adjacencyList.get(from)){
+                if(edge.to.equals(to)){
+                    if(!edge.routeName.equals(lastRoute)){
+                        result.add(edge.routeName);
+                        lastRoute = edge.routeName;
+                    }
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+     */
+
+    private List<String> getRoutesName(List<String> path) {
+        List<String> formattedPath = new ArrayList<>(path); // Start with all vertices
+        String lastRoute = "";
+        Set<String> routes = new LinkedHashSet<>();
+
+        for (int i = 0; i < path.size() - 1; i++) {
+            String from = path.get(i);
+            String to = path.get(i + 1);
+
+            String preferredRoute = null;
+            boolean routeContinued = false;
+
+            for (Edge edge : adjacencyList.get(from)) {
+                if (edge.to.equals(to)) {
+                    if (edge.routeName.equals(lastRoute)) {
+                        preferredRoute = edge.routeName;
+                        routeContinued = true;
+                        break;  // Continue on the same route
+                    }
+                    if (preferredRoute == null) {
+                        preferredRoute = edge.routeName;
+                    }
+                }
+            }
+
+            // If we had to switch routes, or this is the first route, add the new route
+            if (!routeContinued || i == 0) {
+                routes.add(preferredRoute);
+                lastRoute = preferredRoute;
+            }
+        }
+
+        formattedPath.addAll(routes); // Append the unique route names in order
+
+        return formattedPath;
+    }
+
+
+    private int getTransferCount (List<String> path) {
+        String lastRoute = "";
+        int routeChanges = 0;
+
+        for (int i = 0; i < path.size() - 1; i++) {
+            String from = path.get(i);
+            String to = path.get(i + 1);
+
+            String preferredRoute = null;
+            boolean routeContinued = false;
+
+            for (Edge edge : adjacencyList.get(from)) {
+                if (edge.to.equals(to)) {
+                    if (edge.routeName.equals(lastRoute)) {
+                        preferredRoute = edge.routeName;
+                        routeContinued = true;
+                        break;  // Continue on the same route without a transfer
+                    }
+                    if (preferredRoute == null) {
+                        preferredRoute = edge.routeName;  // Select a new route if necessary
+                    }
+                }
+            }
+
+            if (!routeContinued) {
+                routeChanges++;
+                lastRoute = preferredRoute;
+            }
+        }
+
+        return routeChanges;
+    }
     /**
      * A helper method used to actually find the shortest path between any start node and destination node.
      * Call this in getShortestCoffeePaths!
@@ -135,6 +333,38 @@ public class Graph {
      */
     public List<String> shortestPath(String start, String destination){
         // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
+        Map<String,Edge> edgeTo = new HashMap<>();
+        Map<String, Double> distTo = new HashMap<>();
+        PriorityQueue<String> perimeter = new PriorityQueue<>(Comparator.comparingDouble(distTo::get));
+        perimeter.add(start);
+        edgeTo.put(start, null);
+        distTo.put(start, 0.0);
+        while (!perimeter.isEmpty()) {
+            String from = perimeter.poll();
+
+            for (Edge edge : adjacencyList.get(from)) {
+                String to = edge.to;
+                double oldDist = distTo.getOrDefault(to, Double.POSITIVE_INFINITY);
+                double newDist = distTo.get(from) + edge.weight;
+                if (newDist < oldDist) {
+                    edgeTo.put(to, edge);
+                    distTo.put(to, newDist);
+                    perimeter.add(to);
+                }
+            }
+        }
+
+        List<String> path = new ArrayList<>();
+        String curr = destination;
+        path.add(curr);
+        while (edgeTo.get(curr) != null) {
+            curr = edgeTo.get(curr).from;
+            path.add(curr);
+        }
+        Collections.reverse(path);
+        return path;
+
+
     }
 }
